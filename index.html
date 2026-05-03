@@ -3,7 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>✨ Baby Shower · Abril Emilia</title>
+
+<!-- ✦ TÍTULO Y PREVIEW AL COMPARTIR EL LINK ✦ -->
+<title>🦉 Baby Shower Mágico · Abril Emilia Rivera Feijóo</title>
+<meta name="description" content="✨ Estás invitad@ al Baby Shower de Abril Emilia — Domingo 17 de Mayo, 2026 · 3:00 PM · Cerro Colorado. ¡Confirma tu asistencia!">
+
+<!-- Open Graph (WhatsApp, Facebook, Telegram, Instagram) -->
+<meta property="og:title"       content="🦉 Baby Shower Mágico de Abril Emilia"/>
+<meta property="og:description" content="✨ El Gran Salón de Hogwarts te invita · Domingo 17 de Mayo, 2026 · 3:00 PM — 8:00 PM · Cerro Colorado. ¡Confirma tu asistencia!"/>
+<meta property="og:image"       content="https://res.cloudinary.com/dxoc6rndq/image/upload/v1777772699/Gemini_Generated_Image_6tuqip6tuqip6tuq_efh4e7.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:type"        content="website"/>
+<meta property="og:locale"      content="es_PE"/>
+
+<!-- Twitter Card -->
+<meta name="twitter:card"        content="summary_large_image"/>
+<meta name="twitter:title"       content="🦉 Baby Shower Mágico de Abril Emilia"/>
+<meta name="twitter:description" content="✨ El Gran Salón de Hogwarts te invita · Domingo 17 de Mayo · Cerro Colorado"/>
+<meta name="twitter:image"       content="https://res.cloudinary.com/dxoc6rndq/image/upload/v1777772699/Gemini_Generated_Image_6tuqip6tuqip6tuq_efh4e7.png"/>
+
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -223,19 +242,45 @@ body{
   color:var(--rose-gold);margin-top:8px;opacity:.75;
 }
 
-/* Parents line */
-.parents-line{
-  display:flex;align-items:center;justify-content:center;gap:14px;
-  font-style:italic;font-size:1.1rem;color:var(--text-dim);margin-top:18px;
-  animation:fadeRise 1s ease 1.3s both;flex-wrap:wrap;
+/* Parents video */
+.parents-video-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  margin-top:18px;animation:fadeRise 1s ease 1.3s both;
 }
-.parents-line strong{color:var(--rose-soft);font-style:normal;}
-.parents-photo{
-  width:70px;height:70px;object-fit:cover;border-radius:50%;
+.parents-video{
+  width:min(300px,86vw);border-radius:14px;
   border:2px solid rgba(212,135,143,.4);
-  box-shadow:0 4px 16px rgba(0,0,0,.4);
-  flex-shrink:0;
+  box-shadow:0 0 0 6px rgba(212,135,143,.08),0 10px 40px rgba(0,0,0,.5);
+  display:block;
 }
+.parents-caption{
+  font-style:italic;font-size:1.05rem;color:var(--text-dim);text-align:center;line-height:1.65;
+}
+.parents-caption strong{color:var(--rose-soft);font-style:normal;}
+
+/* Activities */
+.activities-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px;}
+.act-card{
+  background:rgba(212,135,143,.04);border:1px solid rgba(212,135,143,.18);
+  padding:18px 14px;transition:all .35s;position:relative;overflow:hidden;
+}
+.act-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--rose-gold),transparent);
+  opacity:0;transition:opacity .35s;
+}
+.act-card:hover{background:rgba(212,135,143,.1);border-color:rgba(212,135,143,.4);transform:translateY(-3px);}
+.act-card:hover::before{opacity:1;}
+.act-icon{font-size:1.8rem;margin-bottom:8px;display:block;}
+.act-spell{
+  font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--gold-soft);font-weight:700;display:block;margin-bottom:5px;
+}
+.act-name{
+  font-family:'Cinzel',serif;font-size:.78rem;font-weight:700;
+  color:var(--rose-soft);display:block;margin-bottom:7px;line-height:1.35;
+}
+.act-desc{font-size:.88rem;color:var(--text-dim);line-height:1.55;}
 
 .g-divider{display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0;}
 .g-line{flex:1;max-width:140px;height:1px;background:linear-gradient(to right,transparent,var(--rose-gold));}
@@ -406,7 +451,7 @@ body{
   .card{padding:24px 16px;}
   .cnt-num{font-size:2rem;width:56px;height:56px;}
   .creature-card{min-width:72px;}
-  .parents-line{flex-direction:column;gap:10px;}
+  .activities-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -609,15 +654,15 @@ body{
         <div class="g-line r"></div>
       </div>
 
-      <!-- Parents + photo -->
-      <div class="parents-line">
-        <img class="parents-photo"
-          src="https://res.cloudinary.com/dxoc6rndq/image/upload/v1777772699/Gemini_Generated_Image_6tuqip6tuqip6tuq_efh4e7.png"
-          alt="Gabriel y Andrea"
-          onerror="this.style.display='none'"/>
-        <span>Con todo el amor de sus papás,<br>
+      <!-- Parents + video -->
+      <div class="parents-video-wrap">
+        <video class="parents-video" autoplay loop muted playsinline webkit-playsinline
+          src="https://res.cloudinary.com/dxoc6rndq/video/upload/v1777775956/alexya_output_877680829_cfe0pj.mp4"
+          onerror="this.style.display='none'">
+        </video>
+        <p class="parents-caption">Con todo el amor de sus papás,<br>
           <strong>Gabriel Rivera</strong> &amp; <strong>Andrea Feijóo</strong>
-        </span>
+        </p>
       </div>
     </div>
 
@@ -798,6 +843,61 @@ body{
       </div>
     </div>
 
+    <!-- ACTIVIDADES -->
+    <div class="card" style="animation-delay:.52s">
+      <div class="card-banner">✦ Actividades Mágicas ✦</div>
+      <div class="card-inner">
+        <div class="spell-quote" style="margin-top:14px">
+          <span class="spell">Accio Diversión</span><br>Prepárate para una tarde llena de encantamientos
+        </div>
+        <div class="activities-grid">
+
+          <div class="act-card">
+            <span class="act-icon">🔮</span>
+            <span class="act-spell">¡REVELIO!</span>
+            <span class="act-name">¿Quién es este Mago?</span>
+            <p class="act-desc">Usa este encantamiento para descubrir quién es quién. Trae una foto tuya de "bebé muggle" y veremos si la Poción Multijugos logra engañarnos en el Gran Comedor.</p>
+          </div>
+
+          <div class="act-card">
+            <span class="act-icon">💭</span>
+            <span class="act-spell">¡EXPECTO MEMORIAM!</span>
+            <span class="act-name">Cápsula del Tiempo</span>
+            <p class="act-desc">Ven preparada para depositar un consejo o profecía en nuestro Pensadero. Estos recuerdos se guardarán bajo un hechizo de protección hasta que reciba su carta de Hogwarts.</p>
+          </div>
+
+          <div class="act-card">
+            <span class="act-icon">🪙</span>
+            <span class="act-spell">¡GEMINIO!</span>
+            <span class="act-name">El Precio es Correcto</span>
+            <p class="act-desc">¿Puedes duplicar mentalmente el valor de los artículos del Callejón Diagon? Repasa cuántos galeones cuestan los esenciales; quien mejor domine las finanzas mágicas ganará el premio.</p>
+          </div>
+
+          <div class="act-card">
+            <span class="act-icon">🎁</span>
+            <span class="act-spell">¡ALOHOMORA!</span>
+            <span class="act-name">Bingo de Regalos</span>
+            <p class="act-desc">Cada vez que un baúl de regalos se abra, marca tu cartilla del Expreso de Hogwarts. ¡La bruja más rápida en completar su fila ganará el trofeo de la casa!</p>
+          </div>
+
+          <div class="act-card">
+            <span class="act-icon">🧷</span>
+            <span class="act-spell">¡MOBILIARBUS!</span>
+            <span class="act-name">Duelo de Pañales y Pociones</span>
+            <p class="act-desc">Necesitaremos agilidad para mover y cuidar a nuestras mandrágoras (bebés) y valor para probar brebajes desconocidos. ¡Solo para las brujas más audaces!</p>
+          </div>
+
+          <div class="act-card">
+            <span class="act-icon">✨</span>
+            <span class="act-spell">¡ENGORGIO!</span>
+            <span class="act-name">Medir la Panza</span>
+            <p class="act-desc">¿Qué tanto efecto ha tenido el hechizo de crecimiento? Afila tu puntería visual y adivina cuánto ha crecido la pancita de la futura mamá.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- RSVP -->
     <div class="card" style="animation-delay:.52s">
       <div class="card-banner">✦ Confirmación ✦</div>
@@ -834,7 +934,7 @@ body{
         </div>
         <div class="success-box" id="successBox">
           <span class="success-icon">🦉</span>
-          <h3 class="success-title">¡Mischief Managed!</h3>
+          <h3 class="success-title">¡Travesura Realizada!</h3>
           <p style="color:var(--text-dim);font-size:1.05rem;line-height:1.7;">
             Tu búho entregó la carta.<br>
             ¡Nos vemos en el Baby Shower de<br>
@@ -846,7 +946,7 @@ body{
     </div>
 
     <div class="g-divider"><div class="g-line"></div><span style="color:var(--rose-gold);font-size:.9rem;letter-spacing:4px;">✨ ✦ ✨</span><div class="g-line r"></div></div>
-    <div class="footer">Mischief Managed · Abril Emilia · 2026</div>
+    <div class="footer">Travesura Realizada · Abril Emilia · 2026</div>
     <button class="admin-trigger" onclick="openModal()">Mapa del Merodeador</button>
 
     <div class="admin-panel" id="adminPanel">
