@@ -89,10 +89,8 @@ body{
    ============================================================ */
 #mainContent{
   opacity:0;
-  transition:opacity 2s ease;
   pointer-events:none;
 }
-#mainContent.visible{opacity:1;pointer-events:auto;}
 
 /* ============================================================
    RSVP VIDEO LAYER
@@ -500,7 +498,7 @@ body{
     <h2 class="begin-title">Baby Shower Mágico<br>de Abril Emilia</h2>
     <p class="begin-sub">Rivera · Feijóo · 2026</p>
     <button id="beginBtn" onclick="startExperience()">✦ &nbsp; Toca para comenzar &nbsp; ✦</button>
-    <button id="skipIntroBtn" onclick="unlockAudioContext();revealMain()" style="margin-top:14px;background:none;border:none;color:rgba(212,135,143,.5);font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:8px;">Saltar intro →</button>
+    <button id="skipIntroBtn" onclick="unlockAudioContext();cleanupIntro()" style="margin-top:14px;background:none;border:none;color:rgba(212,135,143,.5);font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:8px;">Saltar intro →</button>
   </div>
 </div>
 
@@ -1070,12 +1068,6 @@ const URLS = {
 })();
 
 // ======================================================
-//  MUSIC
-// ======================================================
-const music = document.getElementById('bgMusic');
-let musicPlaying = false;
-
-// ======================================================
 //  MÚSICA — con desbloqueo en el gesto del usuario
 // ======================================================
 const music = document.getElementById('bgMusic');
@@ -1193,7 +1185,9 @@ function closeMusicBanner(){
 }
 
 // ======================================================
-//  INTRO VIDEO → MAIN REVEAL  (robust, never gets stuck)
+//  INTRO VIDEO → MAIN REVEAL
+//  Lógica nueva: contenido carga INMEDIATAMENTE al clickear
+//  El video se reproduce como overlay encima (opcional)
 // ======================================================
 const introLayer  = document.getElementById('introLayer');
 const introVideo  = document.getElementById('introVideo');
@@ -1201,72 +1195,96 @@ const mainContent = document.getElementById('mainContent');
 let introStarted  = false;
 let mainRevealed  = false;
 
-// PAGE-LEVEL FAILSAFE: reveal after 25s no matter what
-const pageFailsafe = setTimeout(()=>{ revealMain(); }, 25000);
+// Failsafe de página: si en 30s nadie clickeó, revela igual
+const pageFailsafe = setTimeout(()=>{ revealMain(); }, 30000);
 
 function revealMain(){
   if(mainRevealed) return;
   mainRevealed = true;
   clearTimeout(pageFailsafe);
 
-  // Stop video if still playing
+  // Detener video intro
   try{ introVideo.pause(); introVideo.src=''; }catch(_){}
 
   // Fade out intro layer
-  introLayer.style.transition = 'opacity 1.6s ease';
+  introLayer.style.transition = 'opacity 1.4s ease';
   introLayer.style.opacity    = '0';
-  setTimeout(()=>{ introLayer.style.display='none'; }, 1700);
+  setTimeout(()=>{
+    introLayer.style.display = 'none';
+  }, 1500);
 
-  // Fade in main content
-  mainContent.style.transition = 'opacity 2s ease 0.5s';
-  mainContent.classList.add('visible');
+  // Fade in main content INMEDIATAMENTE
+  mainContent.style.transition = 'opacity 1.8s ease';
+  mainContent.style.opacity    = '1';
+  mainContent.style.pointerEvents = 'auto';
 
-  // Start music 1.2s after reveal
-  setTimeout(startMusic, 1200);
+  // Música después de 1.5s
+  setTimeout(startMusic, 1500);
 }
 
 function startExperience(){
   if(introStarted) return;
   introStarted = true;
 
-  // ← Desbloquear audio AHORA, en el mismo gesto del usuario
   unlockAudioContext();
 
-  // Fade out button overlay
-  const overlay = document.getElementById('beginOverlay');
-  overlay.style.transition = 'opacity .45s';
-  overlay.style.opacity    = '0';
-  setTimeout(()=>{ overlay.style.display='none'; }, 460);
+  // 1. Revelar contenido principal INMEDIATAMENTE
+  revealMain();
 
-  // Show video element
-  introVideo.style.display = 'block';
+  // 2. En paralelo, intentar reproducir el video intro como overlay
+  //    Solo si carga rápido — si no, se ignora
+  tryPlayIntroVideo();
+}
 
-  // Set src NOW (not before) and attach all handlers first
-  let safetyTimer;
+function tryPlayIntroVideo(){
+  // Re-mostrar el introLayer encima del contenido por un momento
+  // pero ahora como overlay transparente sobre el contenido ya visible
+  const vid = introVideo;
+  vid.style.display = 'block';
 
-  const onEnded = ()=>{ clearTimeout(safetyTimer); revealMain(); };
-  const onError = ()=>{ clearTimeout(safetyTimer); revealMain(); };
+  let started = false;
+  const cancelTimer = setTimeout(()=>{
+    // Si no empezó en 3s, cancelar completamente
+    if(!started){ cleanupIntro(); }
+  }, 3000);
 
-  introVideo.addEventListener('ended', onEnded, { once:true });
-  introVideo.addEventListener('error', onError, { once:true });
-
-  // Safety: if video doesn't START playing within 6s, skip it
-  safetyTimer = setTimeout(()=>{ revealMain(); }, 6000);
-
-  // Once it starts playing, extend the timer to full duration
-  introVideo.addEventListener('playing', ()=>{
-    clearTimeout(safetyTimer);
-    // New failsafe: 90s max (longer than any reasonable intro)
-    safetyTimer = setTimeout(()=>{ revealMain(); }, 90000);
+  vid.addEventListener('playing', ()=>{
+    started = true;
+    clearTimeout(cancelTimer);
+    // Re-mostrar el intro layer encima del contenido
+    introLayer.style.display    = 'flex';
+    introLayer.style.opacity    = '1';
+    introLayer.style.transition = 'none';
+    introLayer.style.zIndex     = '2000';
+    // Mostrar botón skip prominente
+    document.getElementById('skipIntroBtn').style.cssText =
+      'display:block!important;font-size:.85rem;padding:12px 28px;color:white;letter-spacing:2px;opacity:1;bottom:40px;right:30px;position:fixed;z-index:3000;background:rgba(212,135,143,.25);border:1px solid rgba(212,135,143,.6);font-family:Cinzel,serif;text-transform:uppercase;cursor:pointer;border-radius:2px;backdrop-filter:blur(6px);';
   }, { once:true });
 
-  // Set src and play
-  introVideo.src = URLS.introVideo;
-  introVideo.load();
-  introVideo.play().catch(()=>{
-    clearTimeout(safetyTimer);
-    revealMain();
+  vid.addEventListener('ended', ()=>{
+    clearTimeout(cancelTimer);
+    cleanupIntro();
+  }, { once:true });
+
+  vid.addEventListener('error', ()=>{
+    clearTimeout(cancelTimer);
+    cleanupIntro();
+  }, { once:true });
+
+  vid.src = URLS.introVideo;
+  vid.load();
+  vid.play().catch(()=>{
+    clearTimeout(cancelTimer);
+    cleanupIntro();
   });
+}
+
+function cleanupIntro(){
+  try{ introVideo.pause(); introVideo.src=''; }catch(_){}
+  introLayer.style.transition = 'opacity .8s ease';
+  introLayer.style.opacity    = '0';
+  setTimeout(()=>{ introLayer.style.display='none'; }, 900);
+  document.getElementById('skipIntroBtn').style.display='none';
 }
 
 // ======================================================
