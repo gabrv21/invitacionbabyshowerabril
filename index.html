@@ -1006,23 +1006,23 @@ body{
 </div><!-- #mainContent -->
 
 <script>
-// ======================================================
-//  CLOUDINARY URLs
-// ======================================================
+// ─────────────────────────────────────────────
+//  URLS
+// ─────────────────────────────────────────────
 const URLS = {
   introVideo : 'https://res.cloudinary.com/dxoc6rndq/video/upload/v1777772516/mp__kiiima.mp4',
   music      : 'https://res.cloudinary.com/dxoc6rndq/video/upload/v1777772676/Hedwig_s_Theme_mlr6tv.mp3',
-  abril      : 'https://res.cloudinary.com/dxoc6rndq/video/upload/v1777772770/video-1777760184257-lp1wdl1461_weszuc.mp4',
-  rsvpVideo  : 'https://res.cloudinary.com/dxoc6rndq/video/upload/v1777772606/video-1777758518930-h29f76po9fr_ybtlxx.mp4',
-  parentsImg : 'https://res.cloudinary.com/dxoc6rndq/image/upload/v1777772699/Gemini_Generated_Image_6tuqip6tuqip6tuq_efh4e7.png'
+  rsvpVideo  : 'https://res.cloudinary.com/dxoc6rndq/video/upload/v1777772606/video-1777758518930-h29f76po9fr_ybtlxx.mp4'
 };
 
-// ======================================================
-//  STARS + FLOATING BG
-// ======================================================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEMJlA9FuyR0KN2ksJYhKf1H3HrYKDnNy7ISDuPL9VfwGQ2k2FlmCbdCTA6LUFI7-luA/exec';
+
+// ─────────────────────────────────────────────
+//  BACKGROUND STARS + FLOATERS
+// ─────────────────────────────────────────────
 (function(){
   const layer = document.getElementById('starsLayer');
-  // Stars
+  const intro = document.getElementById('introLayer');
   for(let i=0;i<130;i++){
     const s=document.createElement('div');
     s.className='star-dot';
@@ -1031,16 +1031,13 @@ const URLS = {
     s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${2+Math.random()*5}s;animation-delay:${Math.random()*6}s;background:${col};`;
     layer.appendChild(s);
   }
-  // Stars on intro screen too
-  const intro = document.getElementById('introLayer');
-  for(let i=0;i<60;i++){
+  for(let i=0;i<50;i++){
     const s=document.createElement('div');
     s.className='begin-star';
-    const sz=.8+Math.random()*2.5;
+    const sz=.8+Math.random()*2.2;
     s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*5}s;background:white;`;
     intro.appendChild(s);
   }
-  // Emoji floaters
   [['✨',12],['⭐',7],['🌟',5],['💫',7],['💖',5],['🌸',5],['💕',4],['🔮',3]].forEach(([e,n])=>{
     for(let i=0;i<n;i++){
       const el=document.createElement('div');
@@ -1050,246 +1047,184 @@ const URLS = {
       layer.appendChild(el);
     }
   });
-  // Candles
   for(let i=0;i<10;i++){
     const w=document.createElement('div');
     const flk=Math.random()>.5?'#FFD0B0':'#FFC0D0';
     const glow=`rgba(255,${150+Math.random()*60},${140+Math.random()*60},.5)`;
     w.style.cssText=`position:absolute;left:${Math.random()*96}%;bottom:-80px;pointer-events:none;animation:floatDrift ${14+Math.random()*12}s linear ${Math.random()*14}s infinite;`;
-    w.innerHTML=`<svg width="16" height="52" viewBox="0 0 16 52" style="filter:drop-shadow(0 0 7px ${glow})">
-      <ellipse cx="8" cy="7" rx="4.5" ry="7.5" fill="${flk}" opacity=".9"/>
-      <ellipse cx="8" cy="9" rx="2.5" ry="5" fill="#FF8060" opacity=".7"/>
-      <ellipse cx="8" cy="6" rx="1.8" ry="3" fill="white" opacity=".35"/>
-      <rect x="4.5" y="13" width="7" height="32" rx="3" fill="#F5E8EC"/>
-      <line x1="8" y1="13" x2="8" y2="17" stroke="#4A2030" stroke-width="1.2"/>
-    </svg>`;
+    w.innerHTML=`<svg width="16" height="52" viewBox="0 0 16 52" style="filter:drop-shadow(0 0 7px ${glow})"><ellipse cx="8" cy="7" rx="4.5" ry="7.5" fill="${flk}" opacity=".9"/><ellipse cx="8" cy="9" rx="2.5" ry="5" fill="#FF8060" opacity=".7"/><rect x="4.5" y="13" width="7" height="32" rx="3" fill="#F5E8EC"/><line x1="8" y1="13" x2="8" y2="17" stroke="#4A2030" stroke-width="1.2"/></svg>`;
     layer.appendChild(w);
   }
 })();
 
-// ======================================================
-//  MÚSICA — con desbloqueo en el gesto del usuario
-// ======================================================
+// ─────────────────────────────────────────────
+//  MUSIC
+// ─────────────────────────────────────────────
 const music = document.getElementById('bgMusic');
 let musicPlaying = false;
-let audioUnlocked = false;
-
-// Clave: desbloquear audio en el MISMO gesto (click) del usuario
-// Así el autoplay funciona segundos después
-function unlockAudioContext(){
-  if(audioUnlocked) return;
-  audioUnlocked = true;
-  // Crear AudioContext silencioso para desbloquear la política del navegador
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const buf = ctx.createBuffer(1,1,22050);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.start(0);
-    ctx.resume().then(()=>{ ctx.close(); });
-  } catch(_){}
-  // También "tocar" el elemento audio silenciosamente para desbloquearlo
-  try {
-    music.volume = 0;
-    music.src = URLS.music;
-    const p = music.play();
-    if(p) p.catch(()=>{});
-    setTimeout(()=>{ music.pause(); music.currentTime=0; music.volume=0; }, 300);
-  } catch(_){}
-}
 
 function startMusic(){
-  music.src = URLS.music;
   music.volume = 0;
-  music.currentTime = 0;
-  const promise = music.play();
-  if(promise !== undefined){
-    promise.then(()=>{
-      // ✅ Autoplay funcionó
-      fadeVolume(music, 0, 0.65, 3500);
-      musicPlaying = true;
+  music.src = URLS.music;
+  music.play().then(()=>{
+    musicPlaying = true;
+    fadeVolume(0, 0.65, 3500);
+    document.getElementById('musicBtn').classList.add('playing');
+    document.getElementById('musicIcon').textContent = '❚❚';
+    document.getElementById('musicSub').textContent  = 'Reproduciendo ✨';
+    document.getElementById('musicBanner').style.display = 'flex';
+  }).catch(()=>{
+    document.getElementById('musicBanner').style.display = 'flex';
+    document.getElementById('musicIcon').textContent = '▶';
+    document.getElementById('musicSub').textContent  = 'Toca para escuchar ✨';
+    showMusicPopup();
+  });
+}
+
+function fadeVolume(from, to, ms){
+  music.volume = from;
+  const steps=50, dt=ms/steps, dv=(to-from)/steps;
+  let i=0;
+  const iv=setInterval(()=>{
+    i++;
+    music.volume=Math.min(Math.max(from+dv*i,0),1);
+    if(i>=steps) clearInterval(iv);
+  },dt);
+}
+
+function toggleMusic(){
+  if(musicPlaying){
+    music.pause(); musicPlaying=false;
+    document.getElementById('musicBtn').classList.remove('playing');
+    document.getElementById('musicIcon').textContent='▶';
+    document.getElementById('musicSub').textContent='Pausado';
+  } else {
+    music.play().then(()=>{
+      musicPlaying=true;
       document.getElementById('musicBtn').classList.add('playing');
-      document.getElementById('musicIcon').textContent = '❚❚';
-      document.getElementById('musicSub').textContent  = 'Reproduciendo ✨';
-      document.getElementById('musicBanner').style.display = 'flex';
-      hideMusicPopup();
-    }).catch(()=>{
-      // ❌ Autoplay bloqueado — mostrar popup elegante
-      document.getElementById('musicBanner').style.display = 'flex';
-      document.getElementById('musicIcon').textContent = '▶';
-      document.getElementById('musicSub').textContent  = 'Toca para escuchar ✨';
-      showMusicPopup();
-    });
+      document.getElementById('musicIcon').textContent='❚❚';
+      document.getElementById('musicSub').textContent='Reproduciendo ✨';
+    }).catch(()=>{});
   }
 }
 
-function fadeVolume(el, from, to, ms){
-  el.volume = from;
-  const steps=50, dt=ms/steps, dv=(to-from)/steps;
-  let i=0;
-  const iv = setInterval(()=>{
-    i++;
-    el.volume = Math.min(Math.max(from + dv*i, 0), 1);
-    if(i >= steps) clearInterval(iv);
-  }, dt);
+function closeMusicBanner(){
+  document.getElementById('musicBanner').classList.add('hidden');
+  if(musicPlaying){ music.pause(); musicPlaying=false; }
 }
 
 function showMusicPopup(){
   setTimeout(()=>{
     document.getElementById('musicPopup').classList.add('show');
-    // Auto-ocultar el popup después de 18 segundos
-    setTimeout(hideMusicPopup, 18000);
+    setTimeout(()=>document.getElementById('musicPopup').classList.remove('show'), 18000);
   }, 800);
 }
-function hideMusicPopup(){
-  document.getElementById('musicPopup').classList.remove('show');
-}
-function dismissMusicPopup(){
-  hideMusicPopup();
-}
+function hideMusicPopup(){ document.getElementById('musicPopup').classList.remove('show'); }
+function dismissMusicPopup(){ hideMusicPopup(); }
 function activateMusicFromPopup(){
   hideMusicPopup();
+  music.src = URLS.music;
   music.volume = 0;
-  music.src    = URLS.music;
   music.play().then(()=>{
-    fadeVolume(music, 0, 0.65, 3000);
-    musicPlaying = true;
+    musicPlaying=true;
+    fadeVolume(0,0.65,3000);
     document.getElementById('musicBtn').classList.add('playing');
-    document.getElementById('musicIcon').textContent = '❚❚';
-    document.getElementById('musicSub').textContent  = 'Reproduciendo ✨';
-    document.getElementById('musicBanner').style.display = 'flex';
+    document.getElementById('musicIcon').textContent='❚❚';
+    document.getElementById('musicSub').textContent='Reproduciendo ✨';
+    document.getElementById('musicBanner').style.display='flex';
   }).catch(()=>{});
 }
 
-function toggleMusic(){
-  if(musicPlaying){
-    music.pause();
-    musicPlaying = false;
-    document.getElementById('musicBtn').classList.remove('playing');
-    document.getElementById('musicIcon').textContent = '▶';
-    document.getElementById('musicSub').textContent  = 'Pausado';
-  } else {
-    if(!music.src || music.src === window.location.href) music.src = URLS.music;
-    music.play().then(()=>{
-      musicPlaying = true;
-      document.getElementById('musicBtn').classList.add('playing');
-      document.getElementById('musicIcon').textContent = '❚❚';
-      document.getElementById('musicSub').textContent  = 'Reproduciendo ✨';
-    }).catch(()=>{});
-  }
-}
-function closeMusicBanner(){
-  document.getElementById('musicBanner').classList.add('hidden');
-  if(musicPlaying){ music.pause(); musicPlaying = false; }
-}
-
-// ======================================================
-//  INTRO VIDEO → MAIN REVEAL
-//  Lógica nueva: contenido carga INMEDIATAMENTE al clickear
-//  El video se reproduce como overlay encima (opcional)
-// ======================================================
-const introLayer  = document.getElementById('introLayer');
-const introVideo  = document.getElementById('introVideo');
-const mainContent = document.getElementById('mainContent');
-let introStarted  = false;
-let mainRevealed  = false;
-
-// Failsafe de página: si en 30s nadie clickeó, revela igual
-const pageFailsafe = setTimeout(()=>{ revealMain(); }, 30000);
-
-function revealMain(){
-  if(mainRevealed) return;
-  mainRevealed = true;
-  clearTimeout(pageFailsafe);
-
-  // Detener video intro
-  try{ introVideo.pause(); introVideo.src=''; }catch(_){}
-
-  // Fade out intro layer
-  introLayer.style.transition = 'opacity 1.4s ease';
-  introLayer.style.opacity    = '0';
-  setTimeout(()=>{
-    introLayer.style.display = 'none';
-  }, 1500);
-
-  // Fade in main content INMEDIATAMENTE
-  mainContent.style.transition = 'opacity 1.8s ease';
-  mainContent.style.opacity    = '1';
-  mainContent.style.pointerEvents = 'auto';
-
-  // Música después de 1.5s
-  setTimeout(startMusic, 1500);
-}
+// ─────────────────────────────────────────────
+//  INTRO FLOW
+//  Fases: PANTALLA INICIO → VIDEO → CONTENIDO
+// ─────────────────────────────────────────────
+const $intro   = document.getElementById('introLayer');
+const $video   = document.getElementById('introVideo');
+const $main    = document.getElementById('mainContent');
+const $overlay = document.getElementById('beginOverlay');
+const $skip    = document.getElementById('skipIntroBtn');
+let started = false;
 
 function startExperience(){
-  if(introStarted) return;
-  introStarted = true;
+  if(started) return;
+  started = true;
 
-  unlockAudioContext();
+  // Ocultar botones del overlay
+  $overlay.style.transition = 'opacity .4s';
+  $overlay.style.opacity = '0';
+  setTimeout(()=>{ $overlay.style.display='none'; }, 420);
 
-  // 1. Revelar contenido principal INMEDIATAMENTE
-  revealMain();
+  // Mostrar loading en el intro layer
+  const loadMsg = document.createElement('div');
+  loadMsg.id = 'loadMsg';
+  loadMsg.style.cssText = 'position:absolute;bottom:80px;left:50%;transform:translateX(-50%);font-family:Cinzel,serif;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:rgba(212,135,143,.7);z-index:10;';
+  loadMsg.textContent = '✨ Cargando magia...';
+  $intro.appendChild(loadMsg);
 
-  // 2. En paralelo, intentar reproducir el video intro como overlay
-  //    Solo si carga rápido — si no, se ignora
-  tryPlayIntroVideo();
-}
+  // Mostrar skip button de inmediato (por si el video demora)
+  $skip.style.cssText = 'display:block;position:fixed;bottom:24px;right:24px;z-index:3000;background:rgba(28,10,46,.85);border:1px solid rgba(212,135,143,.5);color:rgba(212,135,143,.9);padding:10px 22px;font-family:Cinzel,serif;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(8px);';
+  $skip.onclick = skipToMain;
 
-function tryPlayIntroVideo(){
-  // Re-mostrar el introLayer encima del contenido por un momento
-  // pero ahora como overlay transparente sobre el contenido ya visible
-  const vid = introVideo;
-  vid.style.display = 'block';
+  // Intentar reproducir el video
+  let videoPlaying = false;
+  let safetyTimer = setTimeout(()=>{
+    if(!videoPlaying) skipToMain();
+  }, 5000);  // Si en 5s no empieza → ir al contenido
 
-  let started = false;
-  const cancelTimer = setTimeout(()=>{
-    // Si no empezó en 3s, cancelar completamente
-    if(!started){ cleanupIntro(); }
-  }, 3000);
+  $video.style.display = 'block';
+  $video.src = URLS.introVideo;
 
-  vid.addEventListener('playing', ()=>{
-    started = true;
-    clearTimeout(cancelTimer);
-    // Re-mostrar el intro layer encima del contenido
-    introLayer.style.display    = 'flex';
-    introLayer.style.opacity    = '1';
-    introLayer.style.transition = 'none';
-    introLayer.style.zIndex     = '2000';
-    // Mostrar botón skip prominente
-    document.getElementById('skipIntroBtn').style.cssText =
-      'display:block!important;font-size:.85rem;padding:12px 28px;color:white;letter-spacing:2px;opacity:1;bottom:40px;right:30px;position:fixed;z-index:3000;background:rgba(212,135,143,.25);border:1px solid rgba(212,135,143,.6);font-family:Cinzel,serif;text-transform:uppercase;cursor:pointer;border-radius:2px;backdrop-filter:blur(6px);';
-  }, { once:true });
+  $video.addEventListener('playing', ()=>{
+    videoPlaying = true;
+    clearTimeout(safetyTimer);
+    const lm = document.getElementById('loadMsg');
+    if(lm) lm.remove();
+    // Video reproduciendo bien — esperar a que termine
+    // (skip button ya está visible si quieren saltarlo)
+  }, { once: true });
 
-  vid.addEventListener('ended', ()=>{
-    clearTimeout(cancelTimer);
-    cleanupIntro();
-  }, { once:true });
+  $video.addEventListener('ended', ()=>{
+    clearTimeout(safetyTimer);
+    skipToMain();
+  }, { once: true });
 
-  vid.addEventListener('error', ()=>{
-    clearTimeout(cancelTimer);
-    cleanupIntro();
-  }, { once:true });
+  $video.addEventListener('error', ()=>{
+    clearTimeout(safetyTimer);
+    skipToMain();
+  }, { once: true });
 
-  vid.src = URLS.introVideo;
-  vid.load();
-  vid.play().catch(()=>{
-    clearTimeout(cancelTimer);
-    cleanupIntro();
+  $video.load();
+  $video.play().catch(()=>{
+    clearTimeout(safetyTimer);
+    skipToMain();
   });
 }
 
-function cleanupIntro(){
-  try{ introVideo.pause(); introVideo.src=''; }catch(_){}
-  introLayer.style.transition = 'opacity .8s ease';
-  introLayer.style.opacity    = '0';
-  setTimeout(()=>{ introLayer.style.display='none'; }, 900);
-  document.getElementById('skipIntroBtn').style.display='none';
+function skipToMain(){
+  // Ocultar skip button
+  $skip.style.display = 'none';
+  // Detener video
+  try{ $video.pause(); $video.src=''; }catch(_){}
+
+  // Fade out intro
+  $intro.style.transition = 'opacity 1.2s ease';
+  $intro.style.opacity = '0';
+  $intro.style.pointerEvents = 'none';
+  setTimeout(()=>{ $intro.style.display='none'; }, 1300);
+
+  // Fade in contenido principal
+  $main.style.transition = 'opacity 1.5s ease 0.3s';
+  $main.style.opacity = '1';
+  $main.style.pointerEvents = 'auto';
+
+  // Música después de 1s
+  setTimeout(startMusic, 1000);
 }
 
-// ======================================================
+// ─────────────────────────────────────────────
 //  COUNTDOWN
-// ======================================================
+// ─────────────────────────────────────────────
 function tick(){
   const diff = new Date('2026-05-17T15:00:00') - new Date();
   if(diff<=0){
@@ -1304,111 +1239,81 @@ function tick(){
 }
 tick(); setInterval(tick,1000);
 
-// Companion toggle
+// ─────────────────────────────────────────────
+//  FORM TOGGLE
+// ─────────────────────────────────────────────
 document.querySelectorAll('input[name="att"]').forEach(r=>{
   r.addEventListener('change',()=>{
-    document.getElementById('gGrp').style.display=
-      document.querySelector('input[name="att"]:checked').value==='yes'?'block':'none';
+    document.getElementById('gGrp').style.display =
+      document.querySelector('input[name="att"]:checked').value==='yes' ? 'block' : 'none';
   });
 });
 
-// ======================================================
-//  GOOGLE SHEETS — URL del Apps Script
-//  ⚠️ REEMPLAZA esta URL después de publicar el script
-// ======================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEMJlA9FuyR0KN2ksJYhKf1H3HrYKDnNy7ISDuPL9VfwGQ2k2FlmCbdCTA6LUFI7-luA/exec';
-
-// ======================================================
-//  RSVP SUBMIT → GOOGLE SHEETS → VIDEO → OWL → SUCCESS
-// ======================================================
+// ─────────────────────────────────────────────
+//  RSVP → GOOGLE SHEETS
+// ─────────────────────────────────────────────
 async function submitRSVP(){
   const name = document.getElementById('gName').value.trim();
   if(!name){
     const inp = document.getElementById('gName');
-    inp.style.borderColor = 'var(--rose-gold)';
-    inp.placeholder = 'Por favor ingresa tu nombre...';
+    inp.style.borderColor='var(--rose-gold)';
+    inp.placeholder='Por favor ingresa tu nombre...';
     inp.focus();
-    setTimeout(()=>inp.style.borderColor='', 2000);
+    setTimeout(()=>inp.style.borderColor='',2000);
     return;
   }
-
   const btn = document.getElementById('btnSubmit');
   btn.disabled = true;
   btn.textContent = '✨ Enviando...';
 
-  const att     = document.querySelector('input[name="att"]:checked').value;
-  const guests  = att === 'yes' ? document.getElementById('gCount').value : '0';
-  const msg     = document.getElementById('gMsg').value.trim();
+  const att    = document.querySelector('input[name="att"]:checked').value;
+  const guests = att==='yes' ? document.getElementById('gCount').value : '0';
+  const msg    = document.getElementById('gMsg').value.trim();
 
   const payload = {
     nombre   : name,
-    asiste   : att === 'yes' ? 'Sí asisto ✨' : 'No puede asistir 😢',
-    personas : att === 'yes' ? guests : '0',
+    asiste   : att==='yes' ? 'Sí asisto ✨' : 'No puede asistir 😢',
+    personas : att==='yes' ? guests : '0',
     mensaje  : msg
   };
 
-  // — Enviar a Google Sheets via GET (compatible con no-cors) —
   try {
-    const params = new URLSearchParams({
-      nombre   : payload.nombre,
-      asiste   : payload.asiste,
-      personas : payload.personas,
-      mensaje  : payload.mensaje
-    });
-    await fetch(APPS_SCRIPT_URL + '?' + params.toString(), {
-      method : 'GET',
-      mode   : 'no-cors'
-    });
-  } catch(err) {
-    console.log('RSVP enviado:', err.message);
-  }
-
-  // — Fallback local (backup en el navegador del invitado) —
-  try {
-    const key = 'rsvp_abril_' + Date.now();
-    localStorage.setItem(key, JSON.stringify({ ...payload, ts: new Date().toISOString() }));
+    const params = new URLSearchParams(payload);
+    await fetch(APPS_SCRIPT_URL + '?' + params.toString(), { method:'GET', mode:'no-cors' });
   } catch(_){}
 
-  // — Continuar con la animación —
+  // Backup local
+  try{ localStorage.setItem('rsvp_abril_'+Date.now(), JSON.stringify({...payload, ts:new Date().toISOString()})); }catch(_){}
+
   showRsvpVideo();
 }
 
+// ─────────────────────────────────────────────
+//  RSVP VIDEO → OWL → SUCCESS
+// ─────────────────────────────────────────────
 function showRsvpVideo(){
   const layer = document.getElementById('rsvpVideoLayer');
   const vid   = document.getElementById('rsvpVideo');
-
   layer.classList.add('show');
 
-  let rsvpTimer;
-  const onEnd   = ()=>{ clearTimeout(rsvpTimer); finishRsvpVideo(); };
-  const onError = ()=>{ clearTimeout(rsvpTimer); finishRsvpVideo(); };
-
-  vid.addEventListener('ended', onEnd,   { once:true });
-  vid.addEventListener('error', onError, { once:true });
-
-  // If not playing within 5s → skip
-  rsvpTimer = setTimeout(()=>{ finishRsvpVideo(); }, 5000);
-
-  // Extend timer once it starts
-  vid.addEventListener('playing', ()=>{
-    clearTimeout(rsvpTimer);
-    rsvpTimer = setTimeout(()=>{ finishRsvpVideo(); }, 60000);
-  }, { once:true });
+  let timer = setTimeout(finishRsvpVideo, 5000);
+  vid.addEventListener('playing', ()=>{ clearTimeout(timer); timer=setTimeout(finishRsvpVideo,60000); }, {once:true});
+  vid.addEventListener('ended',   ()=>{ clearTimeout(timer); finishRsvpVideo(); }, {once:true});
+  vid.addEventListener('error',   ()=>{ clearTimeout(timer); finishRsvpVideo(); }, {once:true});
 
   vid.src = URLS.rsvpVideo;
   vid.load();
-  vid.play().catch(()=>{ clearTimeout(rsvpTimer); finishRsvpVideo(); });
+  vid.play().catch(()=>{ clearTimeout(timer); finishRsvpVideo(); });
 }
 
 let rsvpDone = false;
 function finishRsvpVideo(){
   if(rsvpDone) return; rsvpDone=true;
-
   const layer = document.getElementById('rsvpVideoLayer');
+  const vid   = document.getElementById('rsvpVideo');
+  try{ vid.pause(); vid.src=''; }catch(_){}
   layer.classList.add('fade-out');
-  setTimeout(()=>{ layer.classList.remove('show','fade-out'); },900);
-
-  // Trigger flying owl
+  setTimeout(()=> layer.classList.remove('show','fade-out'), 900);
   setTimeout(launchOwl, 400);
 }
 
@@ -1417,24 +1322,17 @@ function launchOwl(){
   owl.classList.remove('show');
   void owl.offsetWidth;
   owl.classList.add('show');
-
-  // After owl has crossed (4.5s), show success in card
-  setTimeout(()=>{
-    owl.classList.remove('show');
-    showSuccess();
-    magicConfetti();
-  }, 4800);
+  setTimeout(()=>{ owl.classList.remove('show'); showSuccess(); magicConfetti(); }, 4800);
 }
 
 function showSuccess(){
-  document.getElementById('rsvpForm').style.transition='opacity .6s';
-  document.getElementById('rsvpForm').style.opacity='0';
+  const form = document.getElementById('rsvpForm');
+  form.style.transition='opacity .6s'; form.style.opacity='0';
   setTimeout(()=>{
-    document.getElementById('rsvpForm').style.display='none';
-    const sb = document.getElementById('successBox');
-    sb.style.display='block';
-    sb.style.opacity='0';
-    sb.style.transition='opacity .8s ease';
+    form.style.display='none';
+    const sb=document.getElementById('successBox');
+    sb.style.display='block'; sb.style.opacity='0';
+    sb.style.transition='opacity .8s';
     requestAnimationFrame(()=>{ sb.style.opacity='1'; });
   }, 650);
 }
@@ -1448,18 +1346,24 @@ function magicConfetti(){
       el.style.cssText=`position:fixed;left:${4+Math.random()*92}%;top:-40px;font-size:${.9+Math.random()*1.4}rem;z-index:1100;pointer-events:none;animation:floatDrift ${2+Math.random()*2}s ease forwards;`;
       document.body.appendChild(el);
       setTimeout(()=>el.remove(),5000);
-    }, i*85);
+    },i*85);
   }
 }
 
-// ======================================================
+// ─────────────────────────────────────────────
 //  ADMIN
-// ======================================================
-const ADM_PW='abril2026';
-function openModal(){document.getElementById('modalOverlay').classList.add('open');document.getElementById('pwInput').value='';document.getElementById('pwError').style.display='none';setTimeout(()=>document.getElementById('pwInput').focus(),120);}
-function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+// ─────────────────────────────────────────────
+const ADM_PW = 'abril2026';
+
+function openModal(){
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('pwInput').value='';
+  document.getElementById('pwError').style.display='none';
+  setTimeout(()=>document.getElementById('pwInput').focus(), 120);
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
 function checkPw(){
-  if(document.getElementById('pwInput').value===ADM_PW){
+  if(document.getElementById('pwInput').value === ADM_PW){
     closeModal();
     document.getElementById('adminPanel').style.display='block';
     loadAdmin();
@@ -1470,79 +1374,60 @@ function checkPw(){
     setTimeout(()=>document.getElementById('pwInput').style.borderColor='',2000);
   }
 }
-document.getElementById('pwInput').addEventListener('keypress',e=>{if(e.key==='Enter')checkPw();});
-document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('modalOverlay'))closeModal();});
+document.getElementById('pwInput').addEventListener('keypress',e=>{ if(e.key==='Enter') checkPw(); });
+document.getElementById('modalOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modalOverlay')) closeModal(); });
 
-function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML;}
+function esc(t){ const d=document.createElement('div'); d.appendChild(document.createTextNode(t)); return d.innerHTML; }
 
 async function loadAdmin(){
   const list = document.getElementById('rsvpList');
-  list.innerHTML = '<li style="text-align:center;color:var(--text-dim);padding:22px;font-style:italic;">🔮 Consultando el Pensadero...</li>';
-
-  // Verificar que el script ya fue configurado
-  if(APPS_SCRIPT_URL === 'PEGAR_URL_DEL_APPS_SCRIPT_AQUI'){
-    list.innerHTML = '<li style="text-align:center;color:#D08080;padding:22px;font-family:\'Cinzel\',serif;font-size:.8rem;">⚠️ Aún no has configurado la URL del Apps Script.<br>Sigue los pasos de la guía.</li>';
-    ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='—');
-    return;
-  }
+  list.innerHTML='<li style="text-align:center;color:var(--text-dim);padding:22px;font-style:italic;">🔮 Consultando el Pensadero...</li>';
 
   try {
-    // Leer datos desde Google Sheets via Apps Script GET
-    const res  = await fetch(APPS_SCRIPT_URL + '?action=list', { mode:'cors' });
+    const res  = await fetch(APPS_SCRIPT_URL+'?action=list', {mode:'cors'});
     const data = await res.json();
-
-    if(!data.rows || data.rows.length === 0){
-      list.innerHTML = '<li style="text-align:center;color:var(--text-dim);padding:26px;font-style:italic;">Aún no hay confirmaciones ✨</li>';
+    if(!data.rows || data.rows.length===0){
+      list.innerHTML='<li style="text-align:center;color:var(--text-dim);padding:26px;font-style:italic;">Aún no hay confirmaciones ✨</li>';
       ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='0');
       return;
     }
-
-    const rows      = data.rows; // [{ts,nombre,asiste,personas,mensaje}]
-    const confirmed = rows.filter(r => r.asiste && r.asiste.includes('Sí'));
-    const total     = confirmed.reduce((s,r) => s + (parseInt(r.personas)||1), 0);
-
-    document.getElementById('sTotal').textContent  = rows.length;
-    document.getElementById('sYes').textContent    = confirmed.length;
-    document.getElementById('sGuests').textContent = total;
-
-    list.innerHTML = rows.reverse().map(r=>`
-      <li class="rsvp-item">
-        <div>
-          <span class="ri-name">${esc(r.nombre||'')}</span>
-          <span class="ri-badge ${r.asiste&&r.asiste.includes('Sí')?'badge-yes':'badge-no'}">
-            ${r.asiste&&r.asiste.includes('Sí')?'✓ Confirma':'✗ No asiste'}
-          </span>
-        </div>
-        ${r.asiste&&r.asiste.includes('Sí')?`<div class="ri-guests">👥 ${r.personas} persona${parseInt(r.personas)>1?'s':''}</div>`:''}
-        ${r.mensaje?`<div class="ri-msg">"${esc(r.mensaje)}"</div>`:''}
-        <div class="ri-time">${r.ts||''}</div>
-      </li>`).join('');
-
-  } catch(err) {
-    // Fallback: leer desde localStorage del navegador actual
-    const keys   = Object.keys(localStorage).filter(k=>k.startsWith('rsvp_abril_'));
-    if(!keys.length){
-      list.innerHTML = '<li style="text-align:center;color:var(--text-dim);padding:26px;font-style:italic;">Aún no hay confirmaciones ✨</li>';
-      ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='0');
-      return;
-    }
-    const rows = keys.map(k=>{ try{ return JSON.parse(localStorage.getItem(k)); }catch(_){return null;} }).filter(Boolean)
-      .sort((a,b)=> new Date(b.ts)-new Date(a.ts));
+    const rows      = data.rows;
     const confirmed = rows.filter(r=>r.asiste&&r.asiste.includes('Sí'));
     const total     = confirmed.reduce((s,r)=>s+(parseInt(r.personas)||1),0);
     document.getElementById('sTotal').textContent  = rows.length;
     document.getElementById('sYes').textContent    = confirmed.length;
     document.getElementById('sGuests').textContent = total;
-    list.innerHTML = rows.map(r=>`
-      <li class="rsvp-item" style="border-left-color:#C8A040;">
-        <div>
-          <span class="ri-name">${esc(r.nombre||'')}</span>
-          <span class="ri-badge ${r.asiste&&r.asiste.includes('Sí')?'badge-yes':'badge-no'}">
-            ${r.asiste&&r.asiste.includes('Sí')?'✓ Confirma':'✗ No asiste'}
-          </span>
-        </div>
+    list.innerHTML = [...rows].reverse().map(r=>`
+      <li class="rsvp-item">
+        <div><span class="ri-name">${esc(r.nombre)}</span>
+        <span class="ri-badge ${r.asiste&&r.asiste.includes('Sí')?'badge-yes':'badge-no'}">
+          ${r.asiste&&r.asiste.includes('Sí')?'✓ Confirma':'✗ No asiste'}</span></div>
+        ${r.asiste&&r.asiste.includes('Sí')?`<div class="ri-guests">👥 ${r.personas} persona${parseInt(r.personas)>1?'s':''}</div>`:''}
         ${r.mensaje?`<div class="ri-msg">"${esc(r.mensaje)}"</div>`:''}
-        <div class="ri-time" style="color:#C8A040;">📱 Solo local (aún sin Sheets)</div>
+        <div class="ri-time">${r.ts}</div>
+      </li>`).join('');
+  } catch(_){
+    // Fallback: localStorage
+    const keys=Object.keys(localStorage).filter(k=>k.startsWith('rsvp_abril_'));
+    if(!keys.length){
+      list.innerHTML='<li style="text-align:center;color:var(--text-dim);padding:26px;font-style:italic;">Aún no hay confirmaciones ✨</li>';
+      ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='0');
+      return;
+    }
+    const rows=keys.map(k=>{try{return JSON.parse(localStorage.getItem(k));}catch(_){return null;}})
+      .filter(Boolean).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+    const confirmed=rows.filter(r=>r.asiste&&r.asiste.includes('Sí'));
+    const total=confirmed.reduce((s,r)=>s+(parseInt(r.personas)||1),0);
+    document.getElementById('sTotal').textContent=rows.length;
+    document.getElementById('sYes').textContent=confirmed.length;
+    document.getElementById('sGuests').textContent=total;
+    list.innerHTML=rows.map(r=>`
+      <li class="rsvp-item">
+        <div><span class="ri-name">${esc(r.nombre)}</span>
+        <span class="ri-badge ${r.asiste&&r.asiste.includes('Sí')?'badge-yes':'badge-no'}">
+          ${r.asiste&&r.asiste.includes('Sí')?'✓ Confirma':'✗ No asiste'}</span></div>
+        ${r.mensaje?`<div class="ri-msg">"${esc(r.mensaje)}"</div>`:''}
+        <div class="ri-time" style="color:#C8A040;">📱 Local</div>
       </li>`).join('');
   }
 }
