@@ -1015,7 +1015,7 @@ const URLS = {
   rsvpVideo  : 'https://res.cloudinary.com/dxoc6rndq/video/upload/v1777772606/video-1777758518930-h29f76po9fr_ybtlxx.mp4'
 };
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMQP88D2CSogAQIaR9pQD-vUrPnDGZZGkWA_qx-aOHkmxiYF-iLP2_TzCTxy7QJydgRA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzpnnqXy3nNWYd8is78CooySqfWiik0U5hUGzrdvezqbReut-HOiY8YAxRlyrxnRal58g/exec';
 
 // ─────────────────────────────────────────────
 //  BACKGROUND STARS + FLOATERS
@@ -1399,53 +1399,79 @@ async function loadAdmin(){
   const list = document.getElementById('rsvpList');
   list.innerHTML='<li style="text-align:center;color:var(--text-dim);padding:22px;font-style:italic;">🔮 Consultando el Pensadero...</li>';
 
-  try {
-    const res  = await fetch(APPS_SCRIPT_URL+'?action=list', {mode:'cors'});
-    const data = await res.json();
-    if(!data.rows || data.rows.length===0){
+  // Usar JSONP para evitar problemas de CORS con Apps Script
+  const callbackName = '_rsvpData_' + Date.now();
+
+  const timeout = setTimeout(()=>{
+    // Si en 10s no responde → fallback a localStorage
+    delete window[callbackName];
+    loadAdminLocal();
+  }, 10000);
+
+  window[callbackName] = function(data){
+    clearTimeout(timeout);
+    delete window[callbackName];
+
+    if(!data || !data.rows || data.rows.length === 0){
       list.innerHTML='<li style="text-align:center;color:var(--text-dim);padding:26px;font-style:italic;">Aún no hay confirmaciones ✨</li>';
       ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='0');
       return;
     }
+
     const rows      = data.rows;
-    const confirmed = rows.filter(r=>r.asiste&&r.asiste.includes('Sí'));
-    const total     = confirmed.reduce((s,r)=>s+(parseInt(r.personas)||1),0);
+    const confirmed = rows.filter(r=>r.asiste && r.asiste.indexOf('S') > -1);
+    const total     = confirmed.reduce((s,r)=>s+(parseInt(r.personas)||1), 0);
+
     document.getElementById('sTotal').textContent  = rows.length;
     document.getElementById('sYes').textContent    = confirmed.length;
     document.getElementById('sGuests').textContent = total;
-    list.innerHTML = [...rows].reverse().map(r=>`
+
+    list.innerHTML = rows.slice().reverse().map(r=>`
       <li class="rsvp-item">
-        <div><span class="ri-name">${esc(r.nombre)}</span>
-        <span class="ri-badge ${r.asiste&&r.asiste.includes('Sí')?'badge-yes':'badge-no'}">
-          ${r.asiste&&r.asiste.includes('Sí')?'✓ Confirma':'✗ No asiste'}</span></div>
-        ${r.asiste&&r.asiste.includes('Sí')?`<div class="ri-guests">👥 ${r.personas} persona${parseInt(r.personas)>1?'s':''}</div>`:''}
+        <div><span class="ri-name">${esc(r.nombre||'')}</span>
+        <span class="ri-badge ${r.asiste&&r.asiste.indexOf('S')>-1?'badge-yes':'badge-no'}">
+          ${r.asiste&&r.asiste.indexOf('S')>-1?'✓ Confirma':'✗ No asiste'}</span></div>
+        ${r.asiste&&r.asiste.indexOf('S')>-1?`<div class="ri-guests">👥 ${r.personas} persona${parseInt(r.personas)>1?'s':''}</div>`:''}
         ${r.mensaje?`<div class="ri-msg">"${esc(r.mensaje)}"</div>`:''}
-        <div class="ri-time">${r.ts}</div>
+        <div class="ri-time">${r.ts||''}</div>
       </li>`).join('');
-  } catch(_){
-    // Fallback: localStorage
-    const keys=Object.keys(localStorage).filter(k=>k.startsWith('rsvp_abril_'));
-    if(!keys.length){
-      list.innerHTML='<li style="text-align:center;color:var(--text-dim);padding:26px;font-style:italic;">Aún no hay confirmaciones ✨</li>';
-      ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='0');
-      return;
-    }
-    const rows=keys.map(k=>{try{return JSON.parse(localStorage.getItem(k));}catch(_){return null;}})
-      .filter(Boolean).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
-    const confirmed=rows.filter(r=>r.asiste&&r.asiste.includes('Sí'));
-    const total=confirmed.reduce((s,r)=>s+(parseInt(r.personas)||1),0);
-    document.getElementById('sTotal').textContent=rows.length;
-    document.getElementById('sYes').textContent=confirmed.length;
-    document.getElementById('sGuests').textContent=total;
-    list.innerHTML=rows.map(r=>`
-      <li class="rsvp-item">
-        <div><span class="ri-name">${esc(r.nombre)}</span>
-        <span class="ri-badge ${r.asiste&&r.asiste.includes('Sí')?'badge-yes':'badge-no'}">
-          ${r.asiste&&r.asiste.includes('Sí')?'✓ Confirma':'✗ No asiste'}</span></div>
-        ${r.mensaje?`<div class="ri-msg">"${esc(r.mensaje)}"</div>`:''}
-        <div class="ri-time" style="color:#C8A040;">📱 Local</div>
-      </li>`).join('');
+  };
+
+  // Crear script tag para JSONP
+  const script = document.createElement('script');
+  script.src = APPS_SCRIPT_URL + '?action=list&callback=' + callbackName;
+  script.onerror = function(){
+    clearTimeout(timeout);
+    delete window[callbackName];
+    loadAdminLocal();
+    this.remove();
+  };
+  document.head.appendChild(script);
+}
+
+function loadAdminLocal(){
+  const list = document.getElementById('rsvpList');
+  const keys = Object.keys(localStorage).filter(k=>k.startsWith('rsvp_abril_'));
+  if(!keys.length){
+    list.innerHTML='<li style="text-align:center;color:var(--text-dim);padding:26px;font-style:italic;">Aún no hay confirmaciones ✨<br><span style="font-size:.75rem;margin-top:6px;display:block;">Abre tu Google Sheet directamente para ver los datos.</span></li>';
+    ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='0');
+    return;
   }
+  const rows = keys.map(k=>{try{return JSON.parse(localStorage.getItem(k));}catch(_){return null;}})
+    .filter(Boolean).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+  const confirmed = rows.filter(r=>r.asiste&&r.asiste.indexOf('S')>-1);
+  const total = confirmed.reduce((s,r)=>s+(parseInt(r.personas)||1),0);
+  document.getElementById('sTotal').textContent = rows.length;
+  document.getElementById('sYes').textContent   = confirmed.length;
+  document.getElementById('sGuests').textContent = total;
+  list.innerHTML = rows.map(r=>`
+    <li class="rsvp-item" style="border-left-color:#C8A040;">
+      <div><span class="ri-name">${esc(r.nombre||'')}</span>
+      <span class="ri-badge ${r.asiste&&r.asiste.indexOf('S')>-1?'badge-yes':'badge-no'}">
+        ${r.asiste&&r.asiste.indexOf('S')>-1?'✓ Confirma':'✗ No asiste'}</span></div>
+      ${r.mensaje?`<div class="ri-msg">"${esc(r.mensaje)}"</div>`:''}
+      <div class="ri-time" style="color:#C8A040;">📱 Solo datos locales</div>
+    </li>`).join('');
 }
 </script>
 </body>
