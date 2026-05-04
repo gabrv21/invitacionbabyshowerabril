@@ -11,13 +11,10 @@
 <!-- Open Graph (WhatsApp, Facebook, Telegram, Instagram) -->
 <meta property="og:title"       content="🦉 Baby Shower Mágico de Abril Emilia"/>
 <meta property="og:description" content="✨ El Gran Salón de Hogwarts te invita · Domingo 17 de Mayo, 2026 · 3:00 PM — 8:00 PM · Cerro Colorado. ¡Confirma tu asistencia!"/>
-<meta property="og:image"       content="https://res.cloudinary.com/dxoc6rndq/image/upload/c_fill,w_1200,h_630/v1777772699/Gemini_Generated_Image_6tuqip6tuqip6tuq_efh4e7.png"/>
+<meta property="og:image"       content="https://res.cloudinary.com/dxoc6rndq/image/upload/v1777772699/Gemini_Generated_Image_6tuqip6tuqip6tuq_efh4e7.png"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
-<meta property="og:image:alt"   content="Baby Shower Mágico de Abril Emilia · 17 de Mayo 2026"/>
-<meta property="og:url"         content="https://gabrv21.github.io/invitacionbabyshowerabril/"/>
 <meta property="og:type"        content="website"/>
-<meta property="og:site_name"   content="Invitación Baby Shower · Abril Emilia"/>
 <meta property="og:locale"      content="es_PE"/>
 
 <!-- Twitter Card -->
@@ -159,7 +156,38 @@ body{
   transition:transform .4s ease;
 }
 .music-banner.hidden{transform:translateY(100%);}
-.music-btn{
+
+/* ── Popup "activa el sonido" ── */
+#musicPopup{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(30px);
+  z-index:500;opacity:0;pointer-events:none;
+  transition:opacity .5s ease,transform .5s ease;
+  width:min(340px,90vw);
+}
+#musicPopup.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+.mp-inner{
+  background:linear-gradient(135deg,#1C0A2E,#280E3E);
+  border:1px solid var(--rose-gold);
+  padding:20px 22px;display:flex;flex-direction:column;align-items:center;gap:12px;
+  box-shadow:0 20px 60px rgba(0,0,0,.7);position:relative;
+}
+.mp-inner::before,.mp-inner::after{content:'';position:absolute;width:14px;height:14px;border-style:solid;}
+.mp-inner::before{top:6px;left:6px;border-width:2px 0 0 2px;border-color:var(--rose-gold);}
+.mp-inner::after{bottom:6px;right:6px;border-width:0 2px 2px 0;border-color:var(--rose-gold);}
+.mp-icon{font-size:2.2rem;animation:beginPulse 1.8s ease-in-out infinite;}
+.mp-title{font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--rose-gold);text-align:center;line-height:1.3;}
+.mp-sub{font-family:'Crimson Text',serif;font-style:italic;font-size:.95rem;color:var(--text-dim);text-align:center;}
+.mp-btn{
+  padding:12px 32px;
+  background:linear-gradient(135deg,var(--rose-deep),#8A3048);
+  color:var(--blush-pale);border:1px solid rgba(212,135,143,.35);
+  font-family:'Cinzel',serif;font-size:.75rem;font-weight:700;
+  letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;
+  transition:all .3s;box-shadow:0 4px 18px rgba(184,96,107,.4);width:100%;
+}
+.mp-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(184,96,107,.6);}
+.mp-dismiss{background:none;border:none;color:var(--text-dim);font-size:.65rem;font-family:'Cinzel',serif;letter-spacing:2px;text-transform:uppercase;cursor:pointer;opacity:.6;}
+.mp-dismiss:hover{opacity:1;}
   width:48px;height:48px;border-radius:50%;
   border:2px solid var(--rose-gold);
   background:rgba(212,135,143,.12);
@@ -472,7 +500,7 @@ body{
     <h2 class="begin-title">Baby Shower Mágico<br>de Abril Emilia</h2>
     <p class="begin-sub">Rivera · Feijóo · 2026</p>
     <button id="beginBtn" onclick="startExperience()">✦ &nbsp; Toca para comenzar &nbsp; ✦</button>
-    <button id="skipIntroBtn" onclick="revealMain()" style="margin-top:14px;background:none;border:none;color:rgba(212,135,143,.5);font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:8px;">Saltar intro →</button>
+    <button id="skipIntroBtn" onclick="unlockAudioContext();revealMain()" style="margin-top:14px;background:none;border:none;color:rgba(212,135,143,.5);font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:8px;">Saltar intro →</button>
   </div>
 </div>
 
@@ -528,6 +556,17 @@ body{
     <text x="-18" y="55" font-size="16" opacity=".85" fill="#FFD700">✨</text>
     <text x="-28" y="88" font-size="12" opacity=".65" fill="#E8C870">⭐</text>
   </svg>
+</div>
+
+<!-- MUSIC POPUP -->
+<div id="musicPopup">
+  <div class="mp-inner">
+    <div class="mp-icon">🎵</div>
+    <div class="mp-title">¡Activa la Música Mágica!</div>
+    <div class="mp-sub">Hedwig's Theme está lista para sonar.<br>Toca el botón para comenzar la magia.</div>
+    <button class="mp-btn" onclick="activateMusicFromPopup()">🦉 &nbsp; ¡Activar música! &nbsp; 🦉</button>
+    <button class="mp-dismiss" onclick="dismissMusicPopup()">Prefiero sin música</button>
+  </div>
 </div>
 
 <!-- STARS LAYER -->
@@ -1036,53 +1075,121 @@ const URLS = {
 const music = document.getElementById('bgMusic');
 let musicPlaying = false;
 
+// ======================================================
+//  MÚSICA — con desbloqueo en el gesto del usuario
+// ======================================================
+const music = document.getElementById('bgMusic');
+let musicPlaying = false;
+let audioUnlocked = false;
+
+// Clave: desbloquear audio en el MISMO gesto (click) del usuario
+// Así el autoplay funciona segundos después
+function unlockAudioContext(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  // Crear AudioContext silencioso para desbloquear la política del navegador
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = ctx.createBuffer(1,1,22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+    ctx.resume().then(()=>{ ctx.close(); });
+  } catch(_){}
+  // También "tocar" el elemento audio silenciosamente para desbloquearlo
+  try {
+    music.volume = 0;
+    music.src = URLS.music;
+    const p = music.play();
+    if(p) p.catch(()=>{});
+    setTimeout(()=>{ music.pause(); music.currentTime=0; music.volume=0; }, 300);
+  } catch(_){}
+}
+
 function startMusic(){
   music.src = URLS.music;
   music.volume = 0;
-  music.play().then(()=>{
-    fadeVolume(music, 0, 0.65, 3500);
-    musicPlaying = true;
-    document.getElementById('musicBtn').classList.add('playing');
-    document.getElementById('musicIcon').textContent='❚❚';
-    document.getElementById('musicBanner').style.display='flex';
-  }).catch(()=>{
-    // Show banner for manual play
-    document.getElementById('musicSub').textContent='Toca para escuchar ✨';
-    document.getElementById('musicIcon').textContent='▶';
-    document.getElementById('musicBanner').style.display='flex';
-  });
+  music.currentTime = 0;
+  const promise = music.play();
+  if(promise !== undefined){
+    promise.then(()=>{
+      // ✅ Autoplay funcionó
+      fadeVolume(music, 0, 0.65, 3500);
+      musicPlaying = true;
+      document.getElementById('musicBtn').classList.add('playing');
+      document.getElementById('musicIcon').textContent = '❚❚';
+      document.getElementById('musicSub').textContent  = 'Reproduciendo ✨';
+      document.getElementById('musicBanner').style.display = 'flex';
+      hideMusicPopup();
+    }).catch(()=>{
+      // ❌ Autoplay bloqueado — mostrar popup elegante
+      document.getElementById('musicBanner').style.display = 'flex';
+      document.getElementById('musicIcon').textContent = '▶';
+      document.getElementById('musicSub').textContent  = 'Toca para escuchar ✨';
+      showMusicPopup();
+    });
+  }
 }
 
 function fadeVolume(el, from, to, ms){
-  el.volume=from;
-  const steps=40; const dt=ms/steps; const dv=(to-from)/steps;
+  el.volume = from;
+  const steps=50, dt=ms/steps, dv=(to-from)/steps;
   let i=0;
-  const iv=setInterval(()=>{
+  const iv = setInterval(()=>{
     i++;
-    el.volume=Math.min(Math.max(from+dv*i,0),1);
-    if(i>=steps) clearInterval(iv);
-  },dt);
+    el.volume = Math.min(Math.max(from + dv*i, 0), 1);
+    if(i >= steps) clearInterval(iv);
+  }, dt);
+}
+
+function showMusicPopup(){
+  setTimeout(()=>{
+    document.getElementById('musicPopup').classList.add('show');
+    // Auto-ocultar el popup después de 18 segundos
+    setTimeout(hideMusicPopup, 18000);
+  }, 800);
+}
+function hideMusicPopup(){
+  document.getElementById('musicPopup').classList.remove('show');
+}
+function dismissMusicPopup(){
+  hideMusicPopup();
+}
+function activateMusicFromPopup(){
+  hideMusicPopup();
+  music.volume = 0;
+  music.src    = URLS.music;
+  music.play().then(()=>{
+    fadeVolume(music, 0, 0.65, 3000);
+    musicPlaying = true;
+    document.getElementById('musicBtn').classList.add('playing');
+    document.getElementById('musicIcon').textContent = '❚❚';
+    document.getElementById('musicSub').textContent  = 'Reproduciendo ✨';
+    document.getElementById('musicBanner').style.display = 'flex';
+  }).catch(()=>{});
 }
 
 function toggleMusic(){
   if(musicPlaying){
-    music.pause(); musicPlaying=false;
+    music.pause();
+    musicPlaying = false;
     document.getElementById('musicBtn').classList.remove('playing');
-    document.getElementById('musicIcon').textContent='▶';
-    document.getElementById('musicSub').textContent='Pausado';
+    document.getElementById('musicIcon').textContent = '▶';
+    document.getElementById('musicSub').textContent  = 'Pausado';
   } else {
-    if(!music.src || music.src===window.location.href){ music.src=URLS.music; }
+    if(!music.src || music.src === window.location.href) music.src = URLS.music;
     music.play().then(()=>{
-      musicPlaying=true;
+      musicPlaying = true;
       document.getElementById('musicBtn').classList.add('playing');
-      document.getElementById('musicIcon').textContent='❚❚';
-      document.getElementById('musicSub').textContent='Reproduciendo ✨';
+      document.getElementById('musicIcon').textContent = '❚❚';
+      document.getElementById('musicSub').textContent  = 'Reproduciendo ✨';
     }).catch(()=>{});
   }
 }
 function closeMusicBanner(){
   document.getElementById('musicBanner').classList.add('hidden');
-  if(musicPlaying){ music.pause(); musicPlaying=false; }
+  if(musicPlaying){ music.pause(); musicPlaying = false; }
 }
 
 // ======================================================
@@ -1121,6 +1228,9 @@ function revealMain(){
 function startExperience(){
   if(introStarted) return;
   introStarted = true;
+
+  // ← Desbloquear audio AHORA, en el mismo gesto del usuario
+  unlockAudioContext();
 
   // Fade out button overlay
   const overlay = document.getElementById('beginOverlay');
@@ -1185,39 +1295,60 @@ document.querySelectorAll('input[name="att"]').forEach(r=>{
 });
 
 // ======================================================
-//  STORAGE
+//  GOOGLE SHEETS — URL del Apps Script
+//  ⚠️ REEMPLAZA esta URL después de publicar el script
 // ======================================================
-const Store={
-  PFX:'hp2026_',
-  async set(k,v){const key=this.PFX+k,val=JSON.stringify(v);try{await window.storage.set(key,val,true);}catch(_){}try{localStorage.setItem(key,val);}catch(_){}},
-  async get(k){const key=this.PFX+k;try{const r=await window.storage.get(key,true);if(r?.value)return JSON.parse(r.value);}catch(_){}try{const lv=localStorage.getItem(key);if(lv)return JSON.parse(lv);}catch(_){}return null;},
-  async list(p){const k=this.PFX+p;try{const r=await window.storage.list(k,true);if(r?.keys?.length)return r.keys.map(x=>x.replace(this.PFX,''));}catch(_){}try{return Object.keys(localStorage).filter(x=>x.startsWith(k)).map(x=>x.replace(this.PFX,''));}catch(_){}return[];}
-};
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjEXywy4gGkdiBUidRx6-mahJ9H8pgHSIOUhrJPToXktxnpZBq2Dm3mIIcpxTkevd3mA/exec';
 
 // ======================================================
-//  RSVP SUBMIT → VIDEO → OWL → SUCCESS
+//  RSVP SUBMIT → GOOGLE SHEETS → VIDEO → OWL → SUCCESS
 // ======================================================
 async function submitRSVP(){
   const name = document.getElementById('gName').value.trim();
   if(!name){
-    const inp=document.getElementById('gName');
-    inp.style.borderColor='var(--rose-gold)';
-    inp.placeholder='Por favor ingresa tu nombre...';
+    const inp = document.getElementById('gName');
+    inp.style.borderColor = 'var(--rose-gold)';
+    inp.placeholder = 'Por favor ingresa tu nombre...';
     inp.focus();
-    setTimeout(()=>inp.style.borderColor='',2000);
+    setTimeout(()=>inp.style.borderColor='', 2000);
     return;
   }
-  document.getElementById('btnSubmit').disabled=true;
 
-  const att    = document.querySelector('input[name="att"]:checked').value;
-  const guests = att==='yes' ? document.getElementById('gCount').value : '0';
-  const msg    = document.getElementById('gMsg').value.trim();
-  await Store.set('rsvp_'+Date.now(),{
-    name,att,guests,msg,
-    ts:new Date().toLocaleString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
-  });
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.textContent = '✨ Enviando...';
 
-  // Show RSVP video layer
+  const att     = document.querySelector('input[name="att"]:checked').value;
+  const guests  = att === 'yes' ? document.getElementById('gCount').value : '0';
+  const msg     = document.getElementById('gMsg').value.trim();
+
+  const payload = {
+    nombre   : name,
+    asiste   : att === 'yes' ? 'Sí asisto ✨' : 'No puede asistir 😢',
+    personas : att === 'yes' ? guests : '0',
+    mensaje  : msg
+  };
+
+  // — Enviar a Google Sheets —
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method  : 'POST',
+      mode    : 'no-cors', // necesario para Apps Script sin dominio propio
+      headers : { 'Content-Type': 'application/json' },
+      body    : JSON.stringify(payload)
+    });
+  } catch(err) {
+    // no-cors siempre lanza error de lectura — ignorar, el dato SÍ llega
+    console.log('RSVP enviado (respuesta opaca por CORS):', err.message);
+  }
+
+  // — Fallback local (backup en el navegador del invitado) —
+  try {
+    const key = 'rsvp_abril_' + Date.now();
+    localStorage.setItem(key, JSON.stringify({ ...payload, ts: new Date().toISOString() }));
+  } catch(_){}
+
+  // — Continuar con la animación —
   showRsvpVideo();
 }
 
@@ -1324,34 +1455,76 @@ document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target
 function esc(t){const d=document.createElement('div');d.appendChild(document.createTextNode(t));return d.innerHTML;}
 
 async function loadAdmin(){
-  const list=document.getElementById('rsvpList');
-  list.innerHTML='<li style="text-align:center;color:var(--text-dim);padding:22px;font-style:italic;">Invocando los registros...</li>';
-  const keys=await Store.list('rsvp_');
-  if(!keys.length){
-    list.innerHTML='<li style="text-align:center;color:var(--text-dim);padding:26px;font-style:italic;">Aún no hay confirmaciones ✨</li>';
-    ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='0');
+  const list = document.getElementById('rsvpList');
+  list.innerHTML = '<li style="text-align:center;color:var(--text-dim);padding:22px;font-style:italic;">🔮 Consultando el Pensadero...</li>';
+
+  // Verificar que el script ya fue configurado
+  if(APPS_SCRIPT_URL === 'PEGAR_URL_DEL_APPS_SCRIPT_AQUI'){
+    list.innerHTML = '<li style="text-align:center;color:#D08080;padding:22px;font-family:\'Cinzel\',serif;font-size:.8rem;">⚠️ Aún no has configurado la URL del Apps Script.<br>Sigue los pasos de la guía.</li>';
+    ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='—');
     return;
   }
-  const rsvps=(await Promise.all(keys.map(k=>Store.get(k)))).filter(Boolean);
-  const paired=keys.map((k,i)=>({k,r:rsvps[i]})).filter(x=>x.r)
-    .sort((a,b)=>parseInt(b.k.replace('rsvp_',''))-parseInt(a.k.replace('rsvp_','')));
-  const confirmed=paired.filter(x=>x.r.att==='yes');
-  const total=confirmed.reduce((s,x)=>s+parseInt(x.r.guests||1),0);
-  document.getElementById('sTotal').textContent=paired.length;
-  document.getElementById('sYes').textContent=confirmed.length;
-  document.getElementById('sGuests').textContent=total;
-  list.innerHTML=paired.map(({r})=>`
-    <li class="rsvp-item">
-      <div>
-        <span class="ri-name">${esc(r.name)}</span>
-        <span class="ri-badge ${r.att==='yes'?'badge-yes':'badge-no'}">${r.att==='yes'?'✓ Confirma':'✗ No asiste'}</span>
-      </div>
-      ${r.att==='yes'?`<div class="ri-guests">👥 ${r.guests} persona${parseInt(r.guests)>1?'s':''}</div>`:''}
-      ${r.msg?`<div class="ri-msg">"${esc(r.msg)}"</div>`:''}
-      <div class="ri-time">${r.ts}</div>
-    </li>`).join('');
+
+  try {
+    // Leer datos desde Google Sheets via Apps Script GET
+    const res  = await fetch(APPS_SCRIPT_URL + '?action=list', { mode:'cors' });
+    const data = await res.json();
+
+    if(!data.rows || data.rows.length === 0){
+      list.innerHTML = '<li style="text-align:center;color:var(--text-dim);padding:26px;font-style:italic;">Aún no hay confirmaciones ✨</li>';
+      ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='0');
+      return;
+    }
+
+    const rows      = data.rows; // [{ts,nombre,asiste,personas,mensaje}]
+    const confirmed = rows.filter(r => r.asiste && r.asiste.includes('Sí'));
+    const total     = confirmed.reduce((s,r) => s + (parseInt(r.personas)||1), 0);
+
+    document.getElementById('sTotal').textContent  = rows.length;
+    document.getElementById('sYes').textContent    = confirmed.length;
+    document.getElementById('sGuests').textContent = total;
+
+    list.innerHTML = rows.reverse().map(r=>`
+      <li class="rsvp-item">
+        <div>
+          <span class="ri-name">${esc(r.nombre||'')}</span>
+          <span class="ri-badge ${r.asiste&&r.asiste.includes('Sí')?'badge-yes':'badge-no'}">
+            ${r.asiste&&r.asiste.includes('Sí')?'✓ Confirma':'✗ No asiste'}
+          </span>
+        </div>
+        ${r.asiste&&r.asiste.includes('Sí')?`<div class="ri-guests">👥 ${r.personas} persona${parseInt(r.personas)>1?'s':''}</div>`:''}
+        ${r.mensaje?`<div class="ri-msg">"${esc(r.mensaje)}"</div>`:''}
+        <div class="ri-time">${r.ts||''}</div>
+      </li>`).join('');
+
+  } catch(err) {
+    // Fallback: leer desde localStorage del navegador actual
+    const keys   = Object.keys(localStorage).filter(k=>k.startsWith('rsvp_abril_'));
+    if(!keys.length){
+      list.innerHTML = '<li style="text-align:center;color:var(--text-dim);padding:26px;font-style:italic;">Aún no hay confirmaciones ✨</li>';
+      ['sTotal','sYes','sGuests'].forEach(id=>document.getElementById(id).textContent='0');
+      return;
+    }
+    const rows = keys.map(k=>{ try{ return JSON.parse(localStorage.getItem(k)); }catch(_){return null;} }).filter(Boolean)
+      .sort((a,b)=> new Date(b.ts)-new Date(a.ts));
+    const confirmed = rows.filter(r=>r.asiste&&r.asiste.includes('Sí'));
+    const total     = confirmed.reduce((s,r)=>s+(parseInt(r.personas)||1),0);
+    document.getElementById('sTotal').textContent  = rows.length;
+    document.getElementById('sYes').textContent    = confirmed.length;
+    document.getElementById('sGuests').textContent = total;
+    list.innerHTML = rows.map(r=>`
+      <li class="rsvp-item" style="border-left-color:#C8A040;">
+        <div>
+          <span class="ri-name">${esc(r.nombre||'')}</span>
+          <span class="ri-badge ${r.asiste&&r.asiste.includes('Sí')?'badge-yes':'badge-no'}">
+            ${r.asiste&&r.asiste.includes('Sí')?'✓ Confirma':'✗ No asiste'}
+          </span>
+        </div>
+        ${r.mensaje?`<div class="ri-msg">"${esc(r.mensaje)}"</div>`:''}
+        <div class="ri-time" style="color:#C8A040;">📱 Solo local (aún sin Sheets)</div>
+      </li>`).join('');
+  }
 }
 </script>
 </body>
 </html>
-
