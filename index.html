@@ -1167,28 +1167,39 @@ function startExperience(){
   $skip.onclick = skipToMain;
 
   // Intentar reproducir el video
-  let videoPlaying = false;
-  let safetyTimer = setTimeout(()=>{
-    if(!videoPlaying) skipToMain();
-  }, 5000);  // Si en 5s no empieza → ir al contenido
+  let videoStarted = false;
+  let safetyTimer;
+
+  // Solo disparar failsafe si el video NO ha comenzado a cargar
+  safetyTimer = setTimeout(()=>{
+    if(!videoStarted) skipToMain();
+  }, 8000);
 
   $video.style.display = 'block';
   $video.src = URLS.introVideo;
 
-  $video.addEventListener('playing', ()=>{
-    videoPlaying = true;
+  // El video está cargando (ya sabemos que el archivo responde)
+  $video.addEventListener('loadeddata', ()=>{
+    videoStarted = true;
     clearTimeout(safetyTimer);
     const lm = document.getElementById('loadMsg');
     if(lm) lm.remove();
-    // Video reproduciendo bien — esperar a que termine
-    // (skip button ya está visible si quieren saltarlo)
   }, { once: true });
 
-  $video.addEventListener('ended', ()=>{
+  // El video está reproduciendo — cancelar todo safety
+  $video.addEventListener('playing', ()=>{
+    videoStarted = true;
     clearTimeout(safetyTimer);
+    const lm = document.getElementById('loadMsg');
+    if(lm) lm.remove();
+  }, { once: true });
+
+  // Video terminó — ir al contenido principal
+  $video.addEventListener('ended', ()=>{
     skipToMain();
   }, { once: true });
 
+  // Error — ir al contenido
   $video.addEventListener('error', ()=>{
     clearTimeout(safetyTimer);
     skipToMain();
@@ -1201,7 +1212,10 @@ function startExperience(){
   });
 }
 
+let skipped = false;
 function skipToMain(){
+  if(skipped) return;
+  skipped = true;
   // Ocultar skip button
   $skip.style.display = 'none';
   // Detener video
@@ -1279,7 +1293,9 @@ async function submitRSVP(){
 
   try {
     const params = new URLSearchParams(payload);
-    await fetch(APPS_SCRIPT_URL + '?' + params.toString(), { method:'GET', mode:'no-cors' });
+    // Image trick: más confiable que fetch — no tiene problemas de CORS ni redirects
+    const img = new Image();
+    img.src = APPS_SCRIPT_URL + '?' + params.toString();
   } catch(_){}
 
   // Backup local
