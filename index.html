@@ -1298,7 +1298,7 @@ document.querySelectorAll('input[name="att"]').forEach(r=>{
 //  GOOGLE SHEETS — URL del Apps Script
 //  ⚠️ REEMPLAZA esta URL después de publicar el script
 // ======================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjEXywy4gGkdiBUidRx6-mahJ9H8pgHSIOUhrJPToXktxnpZBq2Dm3mIIcpxTkevd3mA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEMJlA9FuyR0KN2ksJYhKf1H3HrYKDnNy7ISDuPL9VfwGQ2k2FlmCbdCTA6LUFI7-luA/exec';
 
 // ======================================================
 //  RSVP SUBMIT → GOOGLE SHEETS → VIDEO → OWL → SUCCESS
@@ -1329,17 +1329,20 @@ async function submitRSVP(){
     mensaje  : msg
   };
 
-  // — Enviar a Google Sheets —
+  // — Enviar a Google Sheets via GET (compatible con no-cors) —
   try {
-    await fetch(APPS_SCRIPT_URL, {
-      method  : 'POST',
-      mode    : 'no-cors', // necesario para Apps Script sin dominio propio
-      headers : { 'Content-Type': 'application/json' },
-      body    : JSON.stringify(payload)
+    const params = new URLSearchParams({
+      nombre   : payload.nombre,
+      asiste   : payload.asiste,
+      personas : payload.personas,
+      mensaje  : payload.mensaje
+    });
+    await fetch(APPS_SCRIPT_URL + '?' + params.toString(), {
+      method : 'GET',
+      mode   : 'no-cors'
     });
   } catch(err) {
-    // no-cors siempre lanza error de lectura — ignorar, el dato SÍ llega
-    console.log('RSVP enviado (respuesta opaca por CORS):', err.message);
+    console.log('RSVP enviado:', err.message);
   }
 
   // — Fallback local (backup en el navegador del invitado) —
