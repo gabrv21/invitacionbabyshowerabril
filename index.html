@@ -405,13 +405,23 @@ width:70px;height:70px;display:flex;align-items:center;justify-content:center;
 .f-input,.f-select,.f-textarea{
 width:100%;padding:14px 18px;
 background:rgba(212,135,143,.04);border:1px solid rgba(212,135,143,.22);
-color:var(–text);font-family:‘Crimson Text’,serif;font-size:1.05rem;outline:none;transition:all .3s;
+color:var(–text) !important;-webkit-text-fill-color:var(–text) !important;
+font-family:‘Crimson Text’,serif;font-size:1.05rem;outline:none;transition:all .3s;
+caret-color:var(–rose-gold);
 }
-.f-input::placeholder{color:var(–text-dim);}
+.f-input::placeholder{color:var(–text-dim);-webkit-text-fill-color:var(–text-dim);}
 .f-input:focus,.f-select:focus,.f-textarea:focus{border-color:var(–rose-gold);background:rgba(212,135,143,.08);}
-.f-select{cursor:pointer;}
+/* Fix Safari autofill blue/yellow background */
+.f-input:-webkit-autofill,
+.f-input:-webkit-autofill:hover,
+.f-input:-webkit-autofill:focus{
+-webkit-text-fill-color:var(–text) !important;
+-webkit-box-shadow:0 0 0px 1000px #1C0A2E inset !important;
+transition:background-color 5000s ease-in-out 0s;
+}
+.f-select{cursor:pointer;-webkit-text-fill-color:var(–text) !important;}
 .f-select option{background:#1C0A2E;color:var(–text);}
-.f-textarea{resize:vertical;min-height:90px;}
+.f-textarea{resize:vertical;min-height:90px;-webkit-text-fill-color:var(–text) !important;}
 .radio-wrap{display:flex;gap:12px;}
 .radio-opt{flex:1;position:relative;}
 .radio-opt input{position:absolute;opacity:0;pointer-events:none;}
@@ -995,7 +1005,17 @@ cursor:pointer;transition:all .3s;margin-top:10px;box-shadow:0 6px 24px rgba(184
         ¡Nos vemos en el Baby Shower de<br>
         <strong style="color:var(--rose-soft)">Abril Emilia</strong>! ✨
       </p>
-      <div style="font-size:1.5rem;margin-top:16px;letter-spacing:8px;color:var(--rose-gold);">✦ ✨ ✦</div>
+      <div style="margin-top:22px;padding:18px 20px;background:rgba(212,135,143,.08);border:1px solid rgba(212,135,143,.28);position:relative;">
+        <div style="position:absolute;top:6px;left:6px;width:12px;height:12px;border:1.5px solid var(--rose-gold);border-right:none;border-bottom:none;"></div>
+        <div style="position:absolute;bottom:6px;right:6px;width:12px;height:12px;border:1.5px solid var(--rose-gold);border-left:none;border-top:none;"></div>
+        <div style="font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold-soft);margin-bottom:8px;">✦ Recuerda ✦</div>
+        <p style="font-family:'Crimson Text',serif;font-style:italic;font-size:1rem;color:var(--text);line-height:1.65;">
+          📸 No olvides traer una foto de cuando eras bebé,<br>
+          ¡digital o física! La usaremos para descubrir<br>
+          <strong style="color:var(--rose-soft)">¿Quién es este Mago?</strong> 🔮
+        </p>
+      </div>
+      <div style="font-size:1.5rem;margin-top:18px;letter-spacing:8px;color:var(--rose-gold);">✦ ✨ ✦</div>
     </div>
   </div>
 </div>
